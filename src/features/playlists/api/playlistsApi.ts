@@ -1,5 +1,9 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react';
-import type { PlaylistsResponse } from './playlistsApi.types';
+import type {
+  CreatePlaylistArgs,
+  PlaylistData,
+  PlaylistsResponse,
+} from './playlistsApi.types';
 
 export const playlistsApi = createApi({
   reducerPath: 'playlistsApi',
@@ -8,10 +12,16 @@ export const playlistsApi = createApi({
     headers: {
       'API-KEY': import.meta.env.VITE_API_KEY,
     },
+    prepareHeaders: (headers) => {
+      headers.set(
+        'Authorization',
+        `Bearer ${import.meta.env.VITE_ACCESS_TOKEN}`
+      );
+      return headers;
+    },
   }),
+  tagTypes: ['Playlist'],
   endpoints: (build) => ({
-    // Типизация аргументов (<возвращаемый тип, тип query аргументов (`QueryArg`)>)
-    // `query` по умолчанию создает запрос `get` и указание метода необязательно
     fetchPlaylists: build.query<PlaylistsResponse, void>({
       query: () => {
         return {
@@ -19,8 +29,20 @@ export const playlistsApi = createApi({
           url: `playlists`,
         };
       },
+      providesTags: ['Playlist'],
+    }),
+    createPlaylist: build.mutation<{ data: PlaylistData }, CreatePlaylistArgs>({
+      query: (body) => {
+        return {
+          method: 'post',
+          url: `playlists`,
+          body,
+        };
+      },
+      invalidatesTags: ['Playlist'],
     }),
   }),
 });
 
-export const { useFetchPlaylistsQuery } = playlistsApi;
+export const { useFetchPlaylistsQuery, useCreatePlaylistMutation } =
+  playlistsApi;
