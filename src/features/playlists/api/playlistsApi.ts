@@ -3,6 +3,7 @@ import type {
   CreatePlaylistArgs,
   PlaylistData,
   PlaylistsResponse,
+  UpdatePlaylistArgs,
 } from './playlistsApi.types';
 
 export const playlistsApi = createApi({
@@ -41,8 +42,32 @@ export const playlistsApi = createApi({
       },
       invalidatesTags: ['Playlist'],
     }),
+    deletePlaylist: build.mutation<void, string>({
+      query: (playlistId) => {
+        return {
+          method: 'delete',
+          url: `playlists/${playlistId}`,
+        };
+      },
+      invalidatesTags: ['Playlist'],
+    }),
+    updatePlaylist: build.mutation<
+      void,
+      { playlistId: string; body: UpdatePlaylistArgs }
+    >({
+      query: ({ playlistId, body }) => ({
+        url: `playlists/${playlistId}`,
+        method: 'put',
+        body,
+      }),
+      invalidatesTags: ['Playlist'],
+    }),
   }),
 });
 
-export const { useFetchPlaylistsQuery, useCreatePlaylistMutation } =
-  playlistsApi;
+export const {
+  useFetchPlaylistsQuery,
+  useCreatePlaylistMutation,
+  useDeletePlaylistMutation,
+  useUpdatePlaylistMutation,
+} = playlistsApi;
