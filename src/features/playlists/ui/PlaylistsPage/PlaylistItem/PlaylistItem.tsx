@@ -1,4 +1,7 @@
-import { useUploadPlaylistCoverMutation } from '@/features/playlists/api/playlistsApi';
+import {
+  useDeletePlaylistCoverMutation,
+  useUploadPlaylistCoverMutation,
+} from '@/features/playlists/api/playlistsApi';
 import type { PlaylistData } from '../../../api/playlistsApi.types';
 import s from './PlaylistItem.module.css';
 import defaultCover from '@/assets/images/default-playlist-cover.png';
@@ -16,6 +19,7 @@ export const PlaylistItem = ({
   editPlaylistHandler,
 }: Props) => {
   const [uploadPlaylistCover] = useUploadPlaylistCoverMutation();
+  const [deleteCover] = useDeletePlaylistCoverMutation();
 
   const originalCover = playlist.attributes.images.main.find(
     (img) => img.type === 'original'
@@ -44,6 +48,10 @@ export const PlaylistItem = ({
     uploadPlaylistCover({ playlistId: playlist.id, file });
   };
 
+  const deleteCoverHandler = () => {
+    deleteCover({ playlistId: playlist.id });
+  };
+
   return (
     <div>
       <img src={src} alt="cover" width={'100px'} className={s.cover} />
@@ -52,6 +60,9 @@ export const PlaylistItem = ({
         accept={'image/jpeg,image/png,image/gif'}
         onChange={uploadCoverHandler}
       />
+      {originalCover && (
+        <button onClick={() => deleteCoverHandler()}>delete cover</button>
+      )}
       <div>title: {playlist.attributes.title}</div>
       <div>description: {playlist.attributes.description}</div>
       <div>userName: {playlist.attributes.user.name}</div>
