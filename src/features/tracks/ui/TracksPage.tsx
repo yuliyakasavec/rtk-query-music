@@ -1,23 +1,46 @@
+import { useCallback, useEffect, useRef } from 'react';
 import { useFetchTracksInfiniteQuery } from '../api/tracksApi';
 import s from './TracksPage.module.css';
 
 export const TracksPage = () => {
-  const {
-    data,
-    isLoading,
-    isFetching,
-    isFetchingNextPage,
-    fetchNextPage,
-    hasNextPage,
-  } = useFetchTracksInfiniteQuery();
+  const { data, isFetching, isFetchingNextPage, fetchNextPage, hasNextPage } =
+    useFetchTracksInfiniteQuery();
+
+  const observerRef = useRef<HTMLDivElement>(null);
 
   const pages = data?.pages.flatMap((page) => page.data) || [];
 
-  const loadMoreHandler = () => {
+  const loadMoreHandler = useCallback(() => {
     if (hasNextPage && !isFetching) {
       fetchNextPage();
     }
-  };
+  }, [hasNextPage, isFetching, fetchNextPage]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries.length > 0 && entries[0].isIntersecting) {
+          loadMoreHandler();
+        }
+      },
+      {
+        root: null,
+        rootMargin: '100px',
+        threshold: 0.1,
+      }
+    );
+
+    const currentObserverRef = observerRef.current;
+    if (currentObserverRef) {
+      observer.observe(currentObserverRef);
+    }
+
+    return () => {
+      if (currentObserverRef) {
+        observer.unobserve(currentObserverRef);
+      }
+    };
+  }, [loadMoreHandler]);
 
   return (
     <div>
@@ -41,17 +64,18 @@ export const TracksPage = () => {
           );
         })}
       </div>
-      {!isLoading && (
-        <>
-          {hasNextPage ? (
-            <button onClick={loadMoreHandler} disabled={isFetching}>
-              {isFetchingNextPage ? 'Loading...' : 'Load More'}
-            </button>
+
+      {hasNextPage && (
+        <div ref={observerRef}>
+          {isFetchingNextPage ? (
+            <div>Loading more tracks...</div>
           ) : (
-            <p>Nothing more to load</p>
+            <div style={{ height: '20px' }} />
           )}
-        </>
+        </div>
       )}
+
+      {!hasNextPage && pages.length > 0 && <p>Nothing more to load</p>}
     </div>
   );
 };
