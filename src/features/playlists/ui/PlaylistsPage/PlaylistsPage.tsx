@@ -3,7 +3,7 @@ import { useFetchPlaylistsQuery } from '../../api/playlistsApi';
 import { CreatePlaylistForm } from './CreatePlaylistForm/CreatePlaylistForm';
 import s from './PlaylistsPage.module.css';
 import { useDebounceValue } from '@/common/hooks';
-import { Pagination } from '@/common/components';
+import { LinearProgress, Pagination } from '@/common/components';
 import { PlaylistsList } from './PlaylistList/PlaylistList';
 
 export const PlaylistsPage = () => {
@@ -14,7 +14,7 @@ export const PlaylistsPage = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(2);
 
-  const { data, isLoading } = useFetchPlaylistsQuery({
+  const { data, isLoading, isFetching } = useFetchPlaylistsQuery({
     search: debounceSearch,
     pageNumber: currentPage,
     pageSize,
@@ -30,6 +30,8 @@ export const PlaylistsPage = () => {
     setCurrentPage(1);
   };
 
+  if (isLoading) return <h1>Skeleton loader...</h1>;
+
   return (
     <div className={s.container}>
       <h1>Playlists page</h1>
@@ -43,6 +45,7 @@ export const PlaylistsPage = () => {
         playlists={data?.data || []}
         isPlaylistsLoading={isLoading}
       />
+      {isFetching && <LinearProgress />}
       <Pagination
         currentPage={currentPage}
         setCurrentPage={setCurrentPage}
