@@ -14,7 +14,7 @@ export const CreatePlaylistForm = ({ setCurrentPage }: Props) => {
   const onSubmit: SubmitHandler<CreatePlaylistArgs> = (data) => {
     createPlaylist(data)
       .unwrap()
-      .then(() => {
+      .then(async () => {
         reset();
         setCurrentPage(1);
       });
