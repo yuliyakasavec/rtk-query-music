@@ -3,11 +3,12 @@ import type {
   UpdatePlaylistArgs,
 } from '@/features/playlists/api/playlistsApi.types';
 import s from './PlaylistList.module.css';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useDeletePlaylistMutation } from '@/features/playlists/api/playlistsApi';
 import { EditPlaylistForm } from '../EditPlaylistForm/EditPlaylistForm';
 import { PlaylistItem } from '../PlaylistItem/PlaylistItem';
+import { errorToast } from '@/common/utils';
 
 type Props = {
   playlists: PlaylistData[];
@@ -19,7 +20,7 @@ export const PlaylistsList = ({ playlists, isPlaylistsLoading }: Props) => {
 
   const { register, handleSubmit, reset } = useForm<UpdatePlaylistArgs>();
 
-  const [deletePlaylist] = useDeletePlaylistMutation();
+  const [deletePlaylist, { error }] = useDeletePlaylistMutation();
 
   const deletePlaylistHandler = (playlistId: string) => {
     if (confirm('Are you sure you want to delete the playlist?')) {
@@ -39,6 +40,18 @@ export const PlaylistsList = ({ playlists, isPlaylistsLoading }: Props) => {
       setPlaylistId(null);
     }
   };
+
+  useEffect(() => {
+    if (error) {
+      if ('status' in error) {
+        if (error.status === 401) {
+          errorToast('Please log in to delete playlists');
+        } else if (error.status === 403) {
+          errorToast('You can only delete your own playlists');
+        }
+      }
+    }
+  }, [error]);
 
   return (
     <div className={s.items}>

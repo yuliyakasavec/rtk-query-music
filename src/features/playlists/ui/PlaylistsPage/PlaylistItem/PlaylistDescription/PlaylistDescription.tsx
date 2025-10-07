@@ -1,4 +1,5 @@
 import type { PlaylistAttributes } from '@/features/playlists/api/playlistsApi.types';
+import s from './PlaylistDescription.module.css';
 
 type Props = {
   attributes: PlaylistAttributes;
@@ -7,8 +8,10 @@ type Props = {
 export const PlaylistDescription = ({ attributes }: Props) => {
   return (
     <>
-      <div>title: {attributes.title}</div>
-      <div>description: {attributes.description}</div>
+      <div className={s.truncateText}>title: {attributes.title}</div>
+      <div className={s.truncateText}>
+        description: {attributes.description}
+      </div>
       <div>userName: {attributes.user.name}</div>
     </>
   );
