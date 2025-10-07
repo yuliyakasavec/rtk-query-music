@@ -7,6 +7,12 @@ import type {
   UpdatePlaylistArgs,
 } from './playlistsApi.types';
 import { baseApi } from '@/app/api/baseApi';
+import {
+  playlistCreateResponseSchema,
+  playlistsResponseSchema,
+} from '../model/playlists.schemas';
+import { imagesSchema } from '@/common/schemas';
+import { withZodCatch } from '@/common/utils';
 
 export const playlistsApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
@@ -18,6 +24,7 @@ export const playlistsApi = baseApi.injectEndpoints({
           params,
         };
       },
+      ...withZodCatch(playlistsResponseSchema),
       providesTags: ['Playlist'],
     }),
     createPlaylist: build.mutation<{ data: PlaylistData }, CreatePlaylistArgs>({
@@ -28,6 +35,7 @@ export const playlistsApi = baseApi.injectEndpoints({
           body,
         };
       },
+      ...withZodCatch(playlistCreateResponseSchema),
       invalidatesTags: ['Playlist'],
     }),
     deletePlaylist: build.mutation<void, string>({
@@ -108,6 +116,7 @@ export const playlistsApi = baseApi.injectEndpoints({
           body: formData,
         };
       },
+      ...withZodCatch(imagesSchema),
       invalidatesTags: ['Playlist'],
     }),
     deletePlaylistCover: build.mutation<void, { playlistId: string }>({

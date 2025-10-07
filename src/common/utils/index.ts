@@ -5,3 +5,4 @@ export { trimToMaxLength } from './trimToMaxLength.ts';
 export { handleErrors } from './handleErrors.ts';
 export { successToast } from './successToast.ts';
 export { errorToast } from './errorToast.ts';
+export { withZodCatch } from './withZodCatch.ts';
