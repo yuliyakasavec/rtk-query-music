@@ -1,9 +1,9 @@
+import * as z from 'zod';
 import {
-  currentUserReactionSchema,
   imagesSchema,
+  currentUserReactionSchema,
   userSchema,
 } from '@/common/schemas';
-import * as z from 'zod';
 
 export const trackAttachmentSchema = z.object({
   id: z.string(),
@@ -49,9 +49,9 @@ export const tracksMetaSchema = z.object({
 export const tracksIncludedSchema = z.object({
   id: z.string(),
   type: z.literal('artists'),
-  attributes: {
+  attributes: z.object({
     name: z.string(),
-  },
+  }),
 });
 
 export const trackDataSchema = z.object({
