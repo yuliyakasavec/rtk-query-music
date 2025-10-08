@@ -5,6 +5,7 @@ import type {
   PlaylistCreatedEvent,
   PlaylistData,
   PlaylistsResponse,
+  PlaylistUpdatedEvent,
   UpdatePlaylistArgs,
 } from './playlistsApi.types';
 import { baseApi } from '@/app/api/baseApi';
@@ -14,7 +15,8 @@ import {
 } from '../model/playlists.schemas';
 import { imagesSchema } from '@/common/schemas';
 import { withZodCatch } from '@/common/utils';
-import { io, type Socket } from 'socket.io-client';
+import { SOCKET_EVENTS } from '@/common/constants';
+import { subscribeToEvent } from '@/common/socket/subscribeToEvent';
 
 export const playlistsApi = baseApi.injectEndpoints({
   endpoints: (build) => ({
@@ -34,27 +36,39 @@ export const playlistsApi = baseApi.injectEndpoints({
       ) {
         await cacheDataLoaded;
 
-        const socket: Socket = io('https://musicfun.it-incubator.app', {
-          path: '/api/1.0/ws',
-          transports: ['websocket'],
-        });
+        const unsubscribe = subscribeToEvent<PlaylistCreatedEvent>(
+          SOCKET_EVENTS.PLAYLIST_CREATED,
+          (msg) => {
+            const newPlaylist = msg.payload.data;
+            updateCachedData((state) => {
+              state.data.pop();
+              state.data.unshift(newPlaylist);
+              state.meta.totalCount = state.meta.totalCount + 1;
+              state.meta.pagesCount = Math.ceil(
+                state.meta.totalCount / state.meta.pageSize
+              );
+            });
+          }
+        );
 
-        socket.on('connect', () => console.log('✅ Connected to server'));
-
-        socket.on('tracks.playlist-created', (msg: PlaylistCreatedEvent) => {
-          const newPlaylist = msg.payload.data;
-          updateCachedData((state) => {
-            state.data.pop();
-            state.data.unshift(newPlaylist);
-            state.meta.totalCount = state.meta.totalCount + 1;
-            state.meta.pagesCount = Math.ceil(
-              state.meta.totalCount / state.meta.pageSize
-            );
-          });
-        });
+        const unsubscribe2 = subscribeToEvent<PlaylistUpdatedEvent>(
+          SOCKET_EVENTS.PLAYLIST_UPDATED,
+          (msg) => {
+            const newPlaylist = msg.payload.data;
+            updateCachedData((state) => {
+              const index = state.data.findIndex(
+                (playlist) => playlist.id === newPlaylist.id
+              );
+              if (index !== -1) {
+                state.data[index] = { ...state.data[index], ...newPlaylist };
+              }
+            });
+          }
+        );
 
         await cacheEntryRemoved;
-        socket.on('disconnect', () => console.log('❌ Сonnection terminated'));
+        unsubscribe();
+        unsubscribe2();
       },
       providesTags: ['Playlist'],
     }),
